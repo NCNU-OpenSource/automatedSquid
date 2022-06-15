@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/background.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+  {% include './models/bs_css.html' %}
+</head>
+<style>
+  h3 {
+    font-weight: bold;
+    color: rgb(19, 58, 103);
+    text-decoration: underline;
+    text-decoration-thickness: 0.15em;
+    text-underline-offset: 0.2em;
+  }
+
+  p {
+    color: rgb(19, 58, 103);
+    font-size: 1.5em;
+    padding: 0.5em;
+  }
+
+  #memo {
+    font-size: 1em;
+  }
+</style>
+
+<body>
+  {% include './models/navbar.html' %}
+  <div class="row" style="height: 90vh; padding: 5% 10% 5% 10%; margin-bottom: 5em;">
+    <div class="col-2"></div>
+    <div class="col-8">
+      <div class="row text-center" style="height: 90%; background-color: rgb(255, 255, 255, 0.6);">
+        <div class="m-auto">
+          <h3>關於本網站</h3>
+          <p>
+            自動化魷魚是一個幫忙資管系學生視覺化其修課情形，並計算還<br>
+            需要多少學分的系統，還可以順便省下幫魷魚買蘇滑口口的工資 ｡ <br>
+            :.ﾟヽ(*´∀`)ﾉﾟ.:｡
+          </p>
+          <br>
+          <h3>使用流程說明</h3>
+          <p>
+            Step 1. 輸入教務系統帳號密碼<br>
+            Step 2. 勾選欲納入計算的課程<br>
+            Step 3. 勾選所屬的專業次領域<br>
+            Step 4. 查看分析結果<br>
+          </p>
+          <p id="memo">
+            備註：本網站不會紀錄您的資料或將其用於其他不良用途
+          </p>
+        </div>
+      </div>
+      <div class="row" style="height: 10%; padding: 2em;">
+        <div class="m-auto">
+          <a href="/login" type="button" class="btn" id="startBtn">
+            <span style="letter-spacing: 1em;">開</span>始
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="col-2"></div>
+  </div>
+  <!-- <div class="bg-info" style="height: 50vh;">7878787</div> -->
+  {% include './models/bs_js.html' %}
+
+</body>
+
+</html>

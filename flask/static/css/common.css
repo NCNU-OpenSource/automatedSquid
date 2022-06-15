@@ -1,0 +1,43 @@
+.step {
+  background-color: rgb(19, 58, 103);
+  color: rgb(255, 255, 255);
+  font-size: 2em;
+  font-weight: bold;
+  text-align: center;
+  padding: 0.5em 1em 0.5em 1em;
+  border-radius: 3em;
+}
+
+.stepText {
+  color: rgb(19, 58, 103);
+  font-size: 2.5em;
+  /* font-weight: bold; */
+  padding-left: 0.5em;
+  text-decoration: underline;
+  text-decoration-thickness: 0.15em;
+  text-underline-offset: 0.3em;
+}
+
+#startBtn {
+  background-color: rgb(19, 58, 103);
+  color: rgb(255, 255, 255);
+  font-size: 2em;
+  font-weight: bold;
+  text-align: center;
+  padding-left: 2em;
+  padding-right: 2em;
+  box-shadow: 0.1em 0.1em 0.3em 0 rgba(243, 242, 245, 0.9);
+  border-radius: 3em;
+}
+
+#nextBtn {
+  background-color: rgb(19, 58, 103);
+  color: rgb(255, 255, 255);
+  font-size: 1.5em;
+  font-weight: bold;
+  text-align: center;
+  padding-left: 2em;
+  padding-right: 2em;
+  box-shadow: 0.1em 0.05em 0.3em 0 rgba(128, 146, 167, 0.9);
+  border-radius: 3em;
+}

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/background.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+  {% include './models/bs_css.html' %}
+</head>
+
+<style>
+  .category {
+    padding-left: 1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+  }
+
+  table {
+    color: rgb(19, 58, 103);
+    font-size: 1.6em;
+    width: 100%;
+    table-layout: fixed;
+    line-height: 1em;
+    border-spacing: 20px 0px;
+    border-collapse: separate;
+    background: rgba(255, 255, 255, 0.565);
+    padding: 1em;
+  }
+
+  td {
+    width: 50%;
+    text-align: left;
+    border-bottom: 0.1em solid rgb(19, 58, 103);
+    padding-top: 1em;
+  }
+
+
+  input[type='checkbox'] {
+    width: 1.2em;
+    height: 1.2em;
+  }
+
+  #field {
+    color: rgb(19, 58, 103);
+    font-size: 2em;
+    /* background: rgba(255, 255, 255, 0.565); */
+    padding: 1em;
+    line-height: 1em;
+  }
+
+  input[type='radio'] {
+    width: 0.7em;
+    height: 0.7em;
+  }
+</style>
+
+<body>
+  {% include './models/navbar.html' %}
+  <div class="container m-auto" style="height: 90vh; padding: 5%;">
+    <form action="/check" method="post">
+      <div class="row">
+        <div class="form-inline">
+          <h3 class="step">Step 2</h3>
+          <h3 class="stepText">請勾選欲列入計算過程的課程</h3>
+        </div>
+      </div>
+      <h3 class="category">1. 通識領域課程</h3>
+      <div class="row" style="padding: 0em 3em 0em 3em">
+        <table id="generalTable">
+
+        </table>
+      </div>
+      <h3 class="category">2. 必修課程</h3>
+      <div class="row" style="padding: 0em 3em 0em 3em">
+        <table id="courseTable">
+
+        </table>
+      </div>
+      <h3 class="category">3. 選修課程</h3>
+      <div class="row" style="padding: 0em 3em 0em 3em">
+        <table id="chooseTable">
+
+        </table>
+      </div>
+      <h3 class="category">4. 本學期尚未公佈成績的課程</h3>
+      <div class="row" style="padding: 0em 3em 0em 3em">
+        <table id="studyingTable">
+
+        </table>
+      </div>
+      <div class="row mt-3">
+        <div class="form-inline">
+          <h3 class="step">Step 3</h3>
+          <h3 class="stepText">請勾選所屬專業次領域</h3>
+        </div>
+      </div>
+      <div id="field">
+        <input type="radio" name="filedSelect" value="1" checked/>
+        <label>資訊技術與系統開發次領域</label>
+        <br style="line-height: 3em;">
+        <input type="radio" name="filedSelect" value="0"/>
+        <label>資訊管理與決策科學次領域</label>
+      </div>
+      <div class="row" style="height: 10%; padding: 3em;  margin-bottom: 5em;">
+        <div class="m-auto">
+          <button class="btn btn-primary" type="submit" id="nextBtn">下一步</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  {% include './models/bs_js.html' %}
+
+  <script>
+    function genTable(listName, list, begin) {
+      let html = "";
+      for (let i=0; i<list.length; i++) {
+        let tmp = `<input type="checkbox" name="${listName}_Select" value="${i}" checked/>
+                  <label>${list[i]}</label>`
+        //左欄位
+        if((i+begin)%2 == 0) {
+          html += `<tr><td>${tmp}</td>`;
+        } else {
+          html += `<td>${tmp}</td></tr>`;
+        }
+      }
+      return html;
+    }
+    let AllGeneral_list = JSON.parse('{{AllGeneral_list | tojson}}');
+    let SchoolCourse = JSON.parse('{{SchoolCourse | tojson}}');
+    let CollegeCourse = JSON.parse('{{CollegeCourse | tojson}}');
+    let SystemCourse = JSON.parse('{{SystemCourse | tojson}}');
+    let SystemChooseCourse = JSON.parse('{{SystemChooseCourse | tojson}}');
+    let systemProCourse = JSON.parse('{{systemProCourse | tojson}}');
+    let FreeCredit = JSON.parse('{{FreeCredit | tojson}}');
+    
+    
+    let generalTableHtml = genTable("AllGeneral_list", AllGeneral_list, 0);
+    document.getElementById('generalTable').innerHTML = generalTableHtml;
+    
+    let courseTableHtml = genTable("SchoolCourse", SchoolCourse, 0) + 
+                          genTable("CollegeCourse", CollegeCourse, SchoolCourse.length%2) + 
+                          genTable("SystemCourse", SystemCourse, ((SchoolCourse.length)+(CollegeCourse.length))%2);
+    document.getElementById('courseTable').innerHTML = courseTableHtml;
+    
+    let chooseTableHtml = genTable("SystemChooseCourse", SystemChooseCourse, 0) + 
+                          genTable("systemProCourse", systemProCourse, SystemChooseCourse.length%2) + 
+                          genTable("FreeCredit", FreeCredit, ((SystemChooseCourse.length)+(systemProCourse.length))%2);
+    document.getElementById('chooseTable').innerHTML = chooseTableHtml;
+    
+  </script>
+</body>
+
+</html>
