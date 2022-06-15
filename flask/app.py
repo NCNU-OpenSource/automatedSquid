@@ -24,6 +24,7 @@ password = ""   # 密碼
 driver = ""
 
 
+
 # 分組們
 # 按年分去抓
 AllGeneral = dict()
@@ -35,12 +36,13 @@ SystemChooseCourse = [] # 系次領域選修
 systemProCourse = [] # 系選修
 FreeCredit = [] # 自由選修
 studyingCourse = [] # 修習中
+studyingGeneralGroup = [] # 修習中通識
 
 def English() :
     global driver, Epass
     # 英文畢業門檻
     driver.get("https://ccweb6.ncnu.edu.tw/student/aspmaker_student_english_qualifylist.php")
-    time.sleep(1)
+    time.sleep(2)
 
     try :
         Ep = driver.find_element(by=By.ID, value="el1_aspmaker_student_english_qualify_passed").text
@@ -125,14 +127,14 @@ def advanceCourse() :
 def GSpeech() :
     global passNum
     driver.get("https://ccweb.ncnu.edu.tw/UploadLectureReport/login.asp")
-    time.sleep(1)
+    time.sleep(2)
     # 通識講座
     # driver.get("https://ccweb.ncnu.edu.tw/UploadLectureReport/literacy_student_attendlectureViewlist.asp")
 
     element = driver.find_element(by=By.ID, value="mi_literacy_student_attendlectureView")
     ActionChains(driver).click(element).perform()
 
-    time.sleep(3)
+    time.sleep(6)
 
     elementHalf1Pass = driver.find_elements(by=By.CLASS_NAME, value='ewTableRow')
     elementHalf2Pass = driver.find_elements(by=By.CLASS_NAME, value='ewTableAltRow')
@@ -147,7 +149,7 @@ def GSpeech() :
 
 def EasyCheck() :
     # 體育課同一學期修兩堂
-    print("att", attendCourse)
+    # print("att", attendCourse)
     global FreeCredit
     Sameyear = 0
     i = 0
@@ -194,6 +196,8 @@ def Login() :
         return True
 
 def AllIntoName() :
+    GeneralintoName(studyingCourse)
+    GeneralintoName(studyingGeneralGroup)
     GeneralintoName(AllGeneral_list)
     intoName(SchoolCourse) # 校必修
     intoName(CollegeCourse) # 院必修
@@ -363,6 +367,36 @@ def readAllGeneral(Account, ThisYear) :
                     data.append(row)
             AllGeneral[str(Year+i) + str(n)] = data
 
+
+def checkStudying() :
+    global studyingCourse, studyingGeneralGroup
+    # 把它整理成像是通識那樣
+    # 放回去的時候比較方便
+    studyingGroup = [SchoolCourse, CollegeCourse, SystemCourse, SystemChooseCourse, systemProCourse, FreeCredit]
+    studyingCourse = [[], [], [], [], [], []]
+    for i in range(len(studyingGroup)) :
+        v = 0
+        while ( v < len(studyingGroup[i])) :
+            if (studyingGroup[i][v][4] == -1) :
+                studyingCourse[i].append(studyingGroup[i][v])
+                studyingGroup[i].pop(v)
+                v = v - 1
+                # 原本的資料裡面要刪掉
+            v = v + 1
+    # AllGeneral_list 通識要另外處理
+    # ["G", "H", "I", "J", "K", "L", "M", "N", "O"]
+    studyingGeneralGroup = [[], [], [], [], [], [], [], [], []]
+    for i in range(9) :
+        j = 0
+        while ( j < len(AllGeneral_list[i])) :
+            if (AllGeneral_list[i][j][4] == -1) :
+                studyingGeneralGroup[i].append(AllGeneral_list[i][j])
+                AllGeneral_list[i].pop(j)
+                j = j - 1
+            j = j + 1
+    # print("studyingCourse", studyingCourse)
+    # print("studyingGeneralGroup", studyingGeneralGroup)
+
 def group() :
     # 讀取今年年分
     ThisYear = datetime.datetime.now().date().year
@@ -377,6 +411,7 @@ def group() :
     checkProCourse()
     checkGeneralCourse()
     checkFreeCredit()
+    checkStudying()
     # AllIntoName()
 
 def init():
@@ -405,7 +440,6 @@ def init():
     systemProCourse = [] # 系選修
     FreeCredit = [] # 自由選修
     studyingCourse = [] # 修習中
-    
 
 @app.route('/')  
 def home():
@@ -427,11 +461,15 @@ def validate():
     password = request.form['pwd']
 
     isSuccess = Login()
+
     
     # 如果帳號密碼正確，切換新頁面
     if isSuccess:
         group()
-        return render_template("check.html", AllGeneral_list=GeneralintoName(AllGeneral_list), 
+        # print("AllGeneral_list", AllGeneral_list)
+        return render_template("check.html", studyingCourse = GeneralintoName(studyingCourse),
+                                             studyingGeneralGroup = GeneralintoName(studyingGeneralGroup),
+                                             AllGeneral_list=GeneralintoName(AllGeneral_list), 
                                              SchoolCourse = intoName(SchoolCourse), 
                                              CollegeCourse = intoName(CollegeCourse),
                                              SystemCourse = intoName(SystemCourse),
@@ -444,9 +482,46 @@ def validate():
 
 @app.route('/check', methods = ["POST"])
 def checkSelect():
-    print(request.form.getlist('AllGeneral_list_Select'))
-    # print(request.form.getlist('AllGeneral_list_Select'))
-    return ("ok")
+    global AllGeneral_list, SchoolCourse, CollegeCourse, SystemCourse, SystemChooseCourse, systemProCourse, FreeCredit, studyingCourse, studyingGeneralGroup
+
+    AllGeneral_list_Select = request.form.getlist('AllGeneral_list_Select')
+    SchoolCourse_Select = request.form.getlist('SchoolCourse_Select')
+    CollegeCourse_Select = request.form.getlist('CollegeCourse_Select')
+    SystemCourse_Select = request.form.getlist('SystemCourse_Select')
+    SystemChooseCourse_Select = request.form.getlist('SystemChooseCourse_Select')
+    systemProCourse_Select = request.form.getlist('systemProCourse_Select')
+    FreeCredit_Select = request.form.getlist('FreeCredit_Select')
+    studyingGeneralGroup_Select = request.form.getlist('studyingGeneralGroup_Select')
+    studyingCourse_Select = request.form.getlist('studyingCourse_Select')
+    fieldSelect = request.form['fieldSelect']
+
+    print(AllGeneral_list_Select)
+    print(SchoolCourse_Select)
+    print(CollegeCourse_Select)
+    print(SystemCourse_Select)
+    print(SystemChooseCourse_Select)
+    print(systemProCourse_Select)
+    print(FreeCredit_Select)
+    print(studyingGeneralGroup_Select)
+    print(studyingCourse_Select)
+    print(fieldSelect)
+
+    print("------")
+    print("AllGeneral_list", AllGeneral_list)
+    print("SchoolCourse", SchoolCourse)
+    print("CollegeCourse", CollegeCourse)
+    print("SystemCourse", SystemCourse)
+    print("SystemChooseCourse", SystemChooseCourse)
+    print("systemProCourse", systemProCourse)
+    print("FreeCredit", FreeCredit)
+    print("studyingCourse", studyingCourse)
+    print("studyingGeneralGroup", studyingGeneralGroup)
+    print("------")
+
+    percentage = [50, 41, 100, 12]
+
+
+    return render_template("result.html", percentage = percentage)
 
 if __name__ == '__main__':
     app.run(debug = True)
