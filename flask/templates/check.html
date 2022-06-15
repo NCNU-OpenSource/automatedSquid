@@ -88,7 +88,7 @@
       <h3 class="category">
         4. 本學期尚未公佈成績的課程
         <span style="padding-left: 2em; font-size: 0.7em; width: 0.7em; height: 0.7em;">
-          <input id="selectAll" type="checkbox" onchange="toggle(this)"> 全部選取
+          <label><input id="selectAll" type="checkbox" onchange="toggle(this)"> 全部選取</label>
         </span>
       </h3>
       
@@ -135,8 +135,8 @@
       
       let html = "";
       for (let i=0; i<list.length; i++) {
-        let tmp = `<input type="checkbox" name="${listName}_Select" value="${i}" checked/>
-                  <label>${list[i]}</label>`
+        let tmp = `<label><input type="checkbox" name="${listName}_Select" value="${i}" checked/>
+                  ${list[i]}</label>`
         //左欄位
         if((i+begin)%2 == 0) {
           html += `<tr><td>${tmp}</td>`;
