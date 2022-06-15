@@ -85,7 +85,14 @@
 
         </table>
       </div>
-      <h3 class="category">4. 本學期尚未公佈成績的課程</h3>
+      <h3 class="category">
+        4. 本學期尚未公佈成績的課程
+        <span style="padding-left: 2em; font-size: 0.7em; width: 0.7em; height: 0.7em;">
+          <input id="selectAll" type="checkbox" onchange="toggle(this)"> 全部選取
+        </span>
+      </h3>
+      
+        
       <div class="row" style="padding: 0em 3em 0em 3em">
         <table id="studyingTable">
 
@@ -114,7 +121,18 @@
   {% include './models/bs_js.html' %}
 
   <script>
+    function toggle(source) {
+      let checkboxes = document.getElementsByName('studyingGeneralGroup_Select');
+      for(var i=0, n=checkboxes.length;i<n;i++) {
+        checkboxes[i].checked = source.checked;
+      }
+      checkboxes = document.getElementsByName('studyingCourse_Select');
+      for(var i=0, n=checkboxes.length;i<n;i++) {
+        checkboxes[i].checked = source.checked;
+      }
+    }
     function genTable(listName, list, begin) {
+      
       let html = "";
       for (let i=0; i<list.length; i++) {
         let tmp = `<input type="checkbox" name="${listName}_Select" value="${i}" checked/>
@@ -128,36 +146,39 @@
       }
       return html;
     }
-    let studyingCourse = JSON.parse('{{studyingCourse | tojson}}');
-    let studyingGeneralGroup = JSON.parse('{{studyingGeneralGroup | tojson}}');
-    let AllGeneral_list = JSON.parse('{{AllGeneral_list | tojson}}');
-    let SchoolCourse = JSON.parse('{{SchoolCourse | tojson}}');
-    let CollegeCourse = JSON.parse('{{CollegeCourse | tojson}}');
-    let SystemCourse = JSON.parse('{{SystemCourse | tojson}}');
-    let SystemChooseCourse = JSON.parse('{{SystemChooseCourse | tojson}}');
-    let systemProCourse = JSON.parse('{{systemProCourse | tojson}}');
-    let FreeCredit = JSON.parse('{{FreeCredit | tojson}}');
-    
-    
-    let generalTableHtml = genTable("AllGeneral_list", AllGeneral_list, 0);
-    document.getElementById('generalTable').innerHTML = generalTableHtml;
-    
-    let courseTableHtml = genTable("SchoolCourse", SchoolCourse, 0) + 
-                          genTable("CollegeCourse", CollegeCourse, SchoolCourse.length%2) + 
-                          genTable("SystemCourse", SystemCourse, ((SchoolCourse.length)+(CollegeCourse.length))%2);
-    document.getElementById('courseTable').innerHTML = courseTableHtml;
-    
-    let chooseTableHtml = genTable("SystemChooseCourse", SystemChooseCourse, 0) + 
-                          genTable("systemProCourse", systemProCourse, SystemChooseCourse.length%2) + 
-                          genTable("FreeCredit", FreeCredit, ((SystemChooseCourse.length)+(systemProCourse.length))%2);
-    document.getElementById('chooseTable').innerHTML = chooseTableHtml;
-    
-    let studyingTableHtml = genTable("studyingGeneralGroup", studyingGeneralGroup, 0) + 
-                            genTable("studyingCourse", studyingCourse, studyingGeneralGroup.length%2)
-    document.getElementById('studyingTable').innerHTML = studyingTableHtml;
 
-    // console.log(studyingCourse);
-    // console.log(studyingGeneralGroup);
+    function showTables() {
+      let studyingCourse = JSON.parse('{{studyingCourse | tojson}}');
+      let studyingGeneralGroup = JSON.parse('{{studyingGeneralGroup | tojson}}');
+      let AllGeneral_list = JSON.parse('{{AllGeneral_list | tojson}}');
+      let SchoolCourse = JSON.parse('{{SchoolCourse | tojson}}');
+      let CollegeCourse = JSON.parse('{{CollegeCourse | tojson}}');
+      let SystemCourse = JSON.parse('{{SystemCourse | tojson}}');
+      let SystemChooseCourse = JSON.parse('{{SystemChooseCourse | tojson}}');
+      let systemProCourse = JSON.parse('{{systemProCourse | tojson}}');
+      let FreeCredit = JSON.parse('{{FreeCredit | tojson}}');
+      
+      
+      let generalTableHtml = genTable("AllGeneral_list", AllGeneral_list, 0);
+      document.getElementById('generalTable').innerHTML = generalTableHtml;
+      
+      let courseTableHtml = genTable("SchoolCourse", SchoolCourse, 0) + 
+                            genTable("CollegeCourse", CollegeCourse, SchoolCourse.length%2) + 
+                            genTable("SystemCourse", SystemCourse, ((SchoolCourse.length)+(CollegeCourse.length))%2);
+      document.getElementById('courseTable').innerHTML = courseTableHtml;
+      
+      let chooseTableHtml = genTable("SystemChooseCourse", SystemChooseCourse, 0) + 
+                            genTable("systemProCourse", systemProCourse, SystemChooseCourse.length%2) + 
+                            genTable("FreeCredit", FreeCredit, ((SystemChooseCourse.length)+(systemProCourse.length))%2);
+      document.getElementById('chooseTable').innerHTML = chooseTableHtml;
+      
+      let studyingTableHtml = genTable("studyingGeneralGroup", studyingGeneralGroup, 0) + 
+                              genTable("studyingCourse", studyingCourse, studyingGeneralGroup.length%2)
+      document.getElementById('studyingTable').innerHTML = studyingTableHtml;
+    }
+
+    showTables();
+    document.getElementById('selectAll').checked = "true";
     
   </script>
 </body>

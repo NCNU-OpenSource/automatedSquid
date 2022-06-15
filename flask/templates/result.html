@@ -54,27 +54,100 @@
 
   }
 
+  #recommandTitle {
+    padding: 0.5em 0em 0.5em 1em; 
+    font-size: 2.5em;
+    color: rgb(255, 255, 255);
+    background-color: rgb(163, 177, 192);
+    border:  5px solid rgb(163, 177, 192);
+    border-radius: 1em 1em 0em 0em;
+  }
+
+  #recommandList {
+    padding: 4%;
+    background-color: rgba(255, 255, 255, 0.7);
+    border:  5px solid rgba(255, 255, 255, 0.7);
+    border-radius: 0em 0em 2em 2em;
+  }
+
+  .categoryTitle {
+    color: rgb(84, 96, 108);
+    text-decoration: underline;
+    text-decoration-thickness: 0.1em;
+    text-underline-offset: 0.3em;
+  }
+
+  .categoryDiv {
+    font-size: 1.5em;
+    color: rgb(84, 96, 108);
+    padding: 1em 0em 1em 0em;
+  }
+
 
 </style>
 
 <body>
   {% include './models/navbar.html' %}
   <div class="container m-auto" style="height: 90vh; padding: 5%;">
-      <div class="row">
-        <div class="form-inline">
-          <h3 class="step">Step 4</h3>
-          <h3 class="stepText">查看分析結果</h3>
+    <div class="row">
+      <div class="form-inline">
+        <h3 class="step">Step 4</h3>
+        <h3 class="stepText">查看分析結果</h3>
+      </div>
+    </div>
+    <div class="row" style="padding: 5%;"> 
+      <table>
+        <tr id="row0"><td class="category" id="category0">通識課程</td><td class="bar" id="bar0"></td><td class="number" id="number0"></td></tr>
+        <tr id="row1"><td class="category" id="category1">必修課程</td><td  class="bar" id="bar1"></td><td class="number"  id="number1"></td></tr>
+        <tr id="row2"><td class="category" id="category2">選修課程</td><td  class="bar" id="bar2"></td><td class="number"  id="number2"></td></tr>
+        <tr id="row3"><td class="category" id="category3">自由學分</td><td  class="bar" id="bar3"></td><td class="number"  id="number3"></td></tr>
+      </table>
+    </div>
+    <div style="padding: 5% 10% 5% 10%;" >
+      <div class="" id="recommandTitle">
+        建議修課清單
+      </div>
+      <div class="" id="recommandList">
+        <div class="" id="generalDiv">
+          <h3 class="categoryTitle">通識課程</h3>
+          <div class="categoryDiv " id="generalContent">
+
+          </div>
+        </div>
+        <div class="" id="necessaryDiv">
+          <h3 class="categoryTitle">必修課程</h3>
+          <div class="categoryDiv " id="necessaryContent">
+
+          </div>
+        </div>
+        <div class="" id="chooseDiv">
+          <h3 class="categoryTitle">選修課程</h3>
+          <div class="categoryDiv " id="chooseContent">
+
+          </div>
+        </div>
+        <div class="" id="freeDiv">
+          <h3 class="categoryTitle">自由選修</h3>
+          <div class="categoryDiv " id="freeContent">
+
+          </div>
+        </div>
+        <div class="" id="speechDiv">
+          <h3 class="categoryTitle">通識講座</h3>
+          <div class="categoryDiv" id="speechContent">
+
+          </div>
+        </div>
+        <div class="" id="EpassDiv">
+          <h3 class="categoryTitle">英文畢業門檻</h3>
+          <div class="categoryDiv" id="EpassContent">
+
+          </div>
         </div>
       </div>
-      <div class="row" style="padding: 5%;"> 
-        <table>
-          <tr id="row0"><td class="category" id="category0">通識課程</td><td class="bar" id="bar0"></td><td class="number" id="number0"></td></tr>
-          <tr id="row1"><td class="category" id="category1">必修課程</td><td  class="bar" id="bar1"></td><td class="number"  id="number1"></td></tr>
-          <tr id="row2"><td class="category" id="category2">選修課程</td><td  class="bar" id="bar2"></td><td class="number"  id="number2"></td></tr>
-          <tr id="row3"><td class="category" id="category3">自由學分</td><td  class="bar" id="bar3"></td><td class="number"  id="number3"></td></tr>
-        </table>
-      </div>
-    </form>
+
+
+    </div>
   </div>
   {% include './models/bs_js.html' %}
 
@@ -85,7 +158,8 @@
       console.log(percentage);
       for (let i=0; i<percentage.length; i++) {
         if(percentage[i] < 0) {
-          document.getElementById("row"+i.toString()).style.visibility = "hidden";
+          // document.getElementById("row"+i.toString()).style.visibility = "hidden";
+          document.getElementById("row"+i.toString()).style.display = "none";
         }
         else {
           // console.log(i);
@@ -104,7 +178,83 @@
       }
     }
 
+    // function printGeneral() {
+    //   if() {
+    //     let html = "";
+    //     document.getElementById('').innerHTML = html;
+    //   } else{
+    //     document.getElementById('').style.display = "none";
+    //   }
+    // }
+    // function printNecessary() {
+    //   if() {
+    //     let html = "";
+    //     document.getElementById('').innerHTML = html;
+    //   } else{
+    //     document.getElementById('').style.display = "none";
+    //   }
+    // }
+    // function printChoose() {
+    //   if() {
+    //     let html = "";
+    //     document.getElementById('').innerHTML = html;
+    //   } else{
+    //     document.getElementById('').style.display = "none";
+    //   }
+    // }
+    function printFree() {
+      let need = '{{needFreeCredit}}';
+      console.log("Free: ", need);
+      //  如果還沒聽完(>0)
+      if (need > 0) {
+        let html = `<ul><li>缺 ${need} 學分</li></ul>`;
+        document.getElementById('freeContent').innerHTML = html;
+      }else {
+        document.getElementById('freeDiv').style.display = "none";
+      }
+    }
+    function printSpeech() {
+      let need = '{{missGspeech}}';
+      console.log("Speech: ", need);
+      //  如果還沒聽完(>0)
+      if (need > 0) {
+        let html = `<ul><li>缺 ${need} 場</li></ul>`;
+        document.getElementById('speechContent').innerHTML = html;
+      }else {
+        document.getElementById('speechDiv').style.display = "none";
+      }
+    }
+    function printEpass() {
+      let Epass = '{{Epass}}';
+      console.log("Epass: ", Epass);
+      if (Epass == "False") {
+        let html = '<ul><li>未通過</li></ul>';
+        document.getElementById('EpassContent').innerHTML = html;
+      } else {
+        document.getElementById('EpassDiv').style.display = "none";
+      }
+    }
+
+    function showList() {
+      //通識
+      //printGeneral()
+      //必修
+      //printNecessary()
+      //選修
+      //printChoose()
+      //自由選修
+      printFree()
+      //通識講座
+      printSpeech()
+      //英文畢業門檻 
+      printEpass()
+    }
     showBar();
+    showList()
+    // console.log('{{Gspeech}}');
+    // needFreeCredit
+    // missGspeech
+    // EPass
 
   </script>
 </body>
