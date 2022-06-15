@@ -83,6 +83,17 @@ needGeneralCreditsmall = 0
 missGeneralCredit = []
 
 
+missCourseCredit = 0
+missSchoolCourseCredit = 0 # 校必修缺分
+missCollegeCourseCredit = 0 # 院必修缺分
+missSystemCourseCredit = 0 # 系必修缺分
+needGeneralCredit = 0 # 通識缺分
+GernalCreditPercent = -1 # 趴數
+mustCreditPercent = -1
+chooseCreditPercent = -1
+FreeCreditPercent = -1
+
+
 
 def English() :
     global driver, Epass
@@ -687,24 +698,31 @@ def plusGeneral(data, Select, oldData) :
                 selectNum = selectNum + 1
     return data
 def count(NeedCourse, attendCourse, IdOrName) :
+    global missCourseCredit
     missCourse = []
+    missCourseCredit = 0
     for i in range(len(NeedCourse)) :
         for j in range(len(attendCourse)) :
             if (IdOrName == 3) :
                 # IdOrName : 課名是 3 、課號是 0
                 # print(attendCourse[], NeedCourse[i])
                 if (attendCourse[j][IdOrName].find(NeedCourse[i]) != -1) :
+                    #print(missCourseCredit, attendCourse[j])
                     NeedCourse[i] = "0"
+                    missCourseCredit = missCourseCredit - float(attendCourse[j][2])
                 else :
                     j = j + 1
             elif (IdOrName == 0) :
                 if (attendCourse[j][IdOrName] == NeedCourse[i]) :
+                    #print(attendCourse[j])
                     NeedCourse[i] = "0"
+                    missCourseCredit = missCourseCredit - float(attendCourse[j][2])
                 else :
                     j = j + 1
     for i in range(len(NeedCourse)) :
         if (NeedCourse[i] != "0") :
             missCourse.append(NeedCourse[i])
+    print("missinCount", missCourseCredit)
     return missCourse
 
 # 系次領域選修學分
@@ -784,32 +802,42 @@ def countChooseCourse(SystemChooseCoursePlusStudy, SystemChooseCourse_Select, fi
 
 # 校必修
 def countSchoolCourse(SchoolCoursePlusStudy, SchoolCourse_Select) :
-    global missSchoolCourse
+    global missSchoolCourseCredit
+    needCredit = 12
     SchoolCoursePlusStudy = plus(SchoolCoursePlusStudy, SchoolCourse_Select, SchoolCourse)
     needSchoolCourse =  ["英文(上)","英文(下)","英文二","大一體育(上)","大一體育(下：","服務學習(上)","服務學習(下)","學院國文","學院國文","體育:","體育:"]
-    missSchoolCourse = count(needSchoolCourse, SchoolCoursePlusStudy, 3)
-    print("missSchoolCourse", missSchoolCourse)
+    data = count(needSchoolCourse, SchoolCoursePlusStudy, 3)
+    missSchoolCourseCredit = needCredit + missCourseCredit
+    print("missSchoolCourseCredit", missSchoolCourseCredit)
+    print("missSchoolCourse", data)
 
 # 院必修
 def countCollegeCourse(CollegeCoursePlusStudy, CollegeCourse_Select) :
-    global missCollegeCourse
+    global missCollegeCourseCredit
+    needCredit = 15
     CollegeCoursePlusStudy = plus(CollegeCoursePlusStudy, CollegeCourse_Select, CollegeCourse)
     # 如果是管院
     # 管院系所
     # 資管的課 id 、跟其他院的課 id 不一樣，但是如果用課名，有些需要兩段式檢查
     needCollegeCourse = ["經濟學", "會計學及實習(一)", "管理學", "統計學", "程式設計(上)"]
-    missCollegeCourse = count(needCollegeCourse, CollegeCoursePlusStudy, 3)
-    print("missCollegeCourse", missCollegeCourse)
+    print("missCollegeCourse", count(needCollegeCourse, CollegeCoursePlusStudy, 3))
+    missCollegeCourseCredit = needCredit + missCourseCredit
+    print("missCollegeCourseCredit", missCollegeCourseCredit)
 
 # 系必修
 def countSystemCourse(SystemCoursePlusStudy, SystemCourse_Select) :
-    global missSystemCourse
+    global missSystemCourseCredit
+    needCredit = 30
+    data = []
     SystemCoursePlusStudy = plus(SystemCoursePlusStudy, SystemCourse_Select, SystemCourse)
     needSystemCourseId = ["130065", "130014", "130008", "130021", "130030", "130032", "130027", "130039", "130041", "130044"]
     needSystemCourseName = ["微積分及實習(上)","程式設計(下)","計算機概論","資料結構與演算法(上)","管理資訊系統","資料庫管理系統","系統分析與設計","企業資訊通訊與網路","資訊管理專題與個案(上)","資訊管理專題與個案(下)"]
     missid = count(needSystemCourseId, SystemCoursePlusStudy, 0)
-    missSystemCourse = turnIntoName(missid, needSystemCourseId, needSystemCourseName)
-    print("missSystemCourse", missSystemCourse)
+    data = turnIntoName(missid, needSystemCourseId, needSystemCourseName)
+    missSystemCourseCredit = needCredit + missCourseCredit
+    print("missSystemCourseCredit", missSystemCourseCredit)
+    print("missSystemCourse", data)
+    return data
 
 def countGeneralCourse(studyingGeneralGroupPlusStudy, AllGeneral_list_Select) :
     studyingGeneralGroupPlusStudy = plusGeneral(studyingGeneralGroupPlusStudy, AllGeneral_list_Select, AllGeneral_list)
@@ -866,11 +894,36 @@ def init():
     FreeCredit = [] # 自由選修
     studyingCourse = [] # 修習中
 
+def intoPicture() :
+    # 通識
+    global needProCredit, GernalCreditPercent, mustCreditPercent, chooseCreditPercent, FreeCreditPercent
+    print("needGeneralCredit", needGeneralCredit)
+    GernalCreditPercent = int(((19 - needGeneralCredit) / 19)*100)
+    print("GernalCreditPercent", GernalCreditPercent)
+    # 必修
+    print(missSchoolCourseCredit, missCollegeCourseCredit, missSystemCourseCredit)
+    mustCredit = missSchoolCourseCredit + missCollegeCourseCredit + missSystemCourseCredit
+    print("mustCredit", mustCredit)
+    mustCreditPercent = int(((12+15+30 - mustCredit) / (12+15+30))*100)
+    # 系選跟專業選
+    if needProCredit < 0 :
+        needProCredit = 0
+    print(needProCredit, needSystemChooseCourse)
+    chooseCredit = needProCredit + (needSystemChooseCourse*3)
+    print("chooseCredit", chooseCredit)
+    chooseCreditPercent = int((( 24 + 12 - chooseCredit) / (24 + 12))*100)
+    print("chooseCreditPercent", chooseCreditPercent)
+    # 自由選
+    print(needFreeCredit)
+    FreeCreditPercent = int(((20 - needFreeCredit) / 20) * 100)
+    print("FreeCreditPercent", FreeCreditPercent)
+
 def init2():
     global missGeneral, needSystemChooseCourse, needProCredit, needFreeCredit, result, resultSpecial, CombResult, CombBest, CombMax
     global SchoolCoursePlusStudy, CollegeCoursePlusStudy, SystemCoursePlusStudy, SystemChooseCoursePlusStudy, systemProCoursePlusStudy, FreeCreditPlusStudy, studyingGeneralGroupPlusStudy, studyingCoursePlusStudy
     global missSchoolCourse, missCollegeCourse, missSystemCourse, missChooseCourse, missSpecialGeneral
     global needGeneralCredit, needGeneralCreditsmall, missGeneralCredit
+    global missCourseCredit, missSchoolCourseCredit, missCollegeCourseCredit, missSystemCourseCredit, needGeneralCredit, GernalCreditPercent, mustCreditPercent, chooseCreditPercent, FreeCreditPercent
 
 
     missGeneral = []
@@ -908,6 +961,17 @@ def init2():
     needGeneralCredit = 0
     needGeneralCreditsmall = 0
     missGeneralCredit = []
+
+    missCourseCredit = 0
+    missSchoolCourseCredit = 0 # 校必修缺分
+    missCollegeCourseCredit = 0 # 院必修缺分
+    missSystemCourseCredit = 0 # 系必修缺分
+    needGeneralCredit = 0 # 通識缺分
+    GernalCreditPercent = -1 # 趴數
+    mustCreditPercent = -1
+    chooseCreditPercent = -1
+    FreeCreditPercent = -1
+
 
 @app.route('/')  
 def home():
@@ -981,9 +1045,11 @@ def checkSelect():
     countFreeCredit(FreeCreditPlusStudy, FreeCredit_Select)
     countStudyingGeneral(studyingGeneralGroup_Select)
     countGeneralCourse(studyingGeneralGroupPlusStudy, AllGeneral_list_Select) #通識
+    intoPicture()
 
 
-    percentage = [50, 41, 100, 12]
+    # percentage = [50, 41, 100, 12]
+    percentage = [GernalCreditPercent, mustCreditPercent, chooseCreditPercent, FreeCreditPercent]
     return render_template("result.html", percentage = percentage, 
                                           missGeneral  = missGeneral, #
                                           missSpecialGeneral = missSpecialGeneral, #
