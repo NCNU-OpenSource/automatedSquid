@@ -13,7 +13,6 @@ app = Flask(__name__)
 # id=""
 # pwd=""
 # 爬蟲抓回的資料
-FreeCredit = 20 # 自由學分
 advance = []    # 免修
 attendCourse = [] # 所有修過的課(不包含被當的)
 system = "" # 系所名
@@ -37,6 +36,38 @@ systemProCourse = [] # 系選修
 FreeCredit = [] # 自由選修
 studyingCourse = [] # 修習中
 studyingGeneralGroup = [] # 修習中通識
+
+
+# 缺通識
+missGeneral = []
+# 需要八堂系次領域課程
+needSystemChooseCourse = 8
+# 需要系選修學分
+needProCredit = 12
+# 需要自由學分
+needFreeCredit = 20
+# 一個領域通識需要幾學分
+result = 5
+# 特殊領域通識需要幾學分
+resultSpecial = 4
+# 放解的地方
+CombResult = []
+# 已經找到最佳解
+CombBest = False
+# 目前距離最佳解的最接近距離
+CombMax = result
+
+General =  ["文學與藝術", "歷史哲學與文化", "法政與教育", "社經與管理", "工程與科技", "生命與科學", "東南亞", "綠概念", "在地實踐"]
+
+SchoolCoursePlusStudy = []
+CollegeCoursePlusStudy = []
+SystemCoursePlusStudy = []
+SystemChooseCoursePlusStudy = []
+systemProCoursePlusStudy = []
+FreeCreditPlusStudy = []
+studyingGeneralGroupPlusStudy = []
+studyingCoursePlusStudy = []
+
 
 def English() :
     global driver, Epass
@@ -90,7 +121,7 @@ def Course() :
             credit = driver.find_element(by=By.ID, value=creditUrl).text
             cid = driver.find_element(by=By.ID, value=cidUrl).text
             year = driver.find_element(by=By.ID, value=YearUrl).text
-            print("Class : ", classname, " credit : ", credit, "score : ", score)
+            print("Class : ", classname, " credit : ", credit, "score : ", score, "year", year)
             attendCourse.append([cid, year, credit, classname, scoreNum])
     driver.get("https://ccweb6.ncnu.edu.tw/student/aspmaker_student_exempt_list_viewlist.php")
     elementHalf1Class = driver.find_elements(by=By.CLASS_NAME, value='ew-table-alt-row')
@@ -246,8 +277,11 @@ def checkGeneralCourse() :
     O_list = []
     All_list_Word = ["G", "H", "I", "J", "K", "L", "M", "N", "O"]
     AllGeneral_list = [G_list, H_list, I_list, J_list, K_list, L_list, M_list, N_list, O_list] 
+    # print("AllGeneral", AllGeneral)
+    # print("attendCourse", attendCourse)
+
     for i in range(len(attendCourse)) :
-        if (attendCourse[i] != "0") :
+        if (attendCourse[i] != "0" and attendCourse[i][1] != '') :
             for j in range(len(AllGeneral[attendCourse[i][1]])) :
                 if (AllGeneral[attendCourse[i][1]][j][2] == attendCourse[i][0]) :
                     for pos in range(len(All_list_Word)) :
@@ -414,6 +448,362 @@ def group() :
     checkStudying()
     # AllIntoName()
 
+def GeneralRule(data) :
+    need3out2 = 0
+    for i in range(6, 9) :
+        if (len(data[i]) >= 0) :
+            need3out2 = need3out2 + 1
+        else : 
+            missSpecialGeneral.append(General[i])
+    if (need3out2 >= 2) :
+        missSpecialGeneral = []
+        ThreeComb(data[6], data[7], data[8], result)
+    elif (need3out2 == 1) :
+        print(missSpecialGeneral, "二選一")
+        # 組合
+        if (len(data[6]) > 0) :
+            OnlyOneComb(data[6], resultSpecial, [])
+        elif (len(data[7]) > 0) :
+            OnlyOneComb(data[7], resultSpecial, [])
+        else :
+            OnlyOneComb(data[8], resultSpecial, [])
+    for i in range(3) :
+        print(i)
+        # 不缺領域
+        if (len(data[i*2]) > 0 and len(data[i*2+1]) > 0) :
+            # 組合
+            twoComb(data[i*2], data[i*2+1], result)
+        # 兩個領域都缺
+        elif (len(data[i*2]) == 0 and len(data[i*2+1]) == 0) :
+            missGeneral.append(General[i*2+1])
+            missGeneral.append(General[i*2])
+        # 缺一領域
+        else : # 二選一
+            global CombBest, CombResult
+            CombBest = False
+            CombResult = []
+            # 組合
+            if (len(data[i*2]) > 0) :
+                missGeneral.append(General[i*2])
+                OnlyOneComb(data[i*2], result, [])
+                #print("CombResult", CombResult)
+                moveMore(data[i*2])
+            else :
+                missGeneral.append(General[i*2+1])
+                OnlyOneComb(data[i*2+1], result, [])
+                #print("CombResult", CombResult)
+                moveMore(data[i*2+1])
+    print(missGeneral)
+
+def OnlyOneComb(data, result, ans) :
+    global CombBest, CombMax, CombResult
+    # 如果有最佳解了，終止
+    if (CombBest == True) :
+        return 
+    if (result <= 0 or (len(ans) >= len(data) and len(ans) > 0)) :
+        if (result == 0) :
+            CombResult = ans
+            CombBest = True
+            return
+        if (result < CombMax) :
+            CombResult = ans
+            CombMax = result
+            return
+    for i in range(len(data)) :
+        result = result - float(data[i][2])
+        OnlyOneComb(data[i+1:], result, ans + [data[i]])
+        result = result + float(data[i][2])
+
+def ThreeComb(dataA, dataB, dataC, result) :
+    global CombBest, CombMax, CombResult
+    CombResult = []
+    CombBest = False
+    CombMax = result
+    if (len(dataA) == 0) :
+        twoComb(dataB, dataC, result)
+    elif (len(dataB) == 0) :
+        twoComb(dataA, dataC, result)
+    elif (len(dataC) == 0) :
+        twoComb(dataA, dataB, result)
+    else :
+        for i in range(len(dataA)) :
+            dataA[i].append("A")
+        for i in range(len(dataB)) :
+            dataB[i].append("B")
+        for i in range(len(dataC)) :
+            dataB[i].append("C")
+        data = dataA + dataB + dataC
+        CombThree(data, result, [])
+        print("CombResult", CombResult)
+
+def twoComb(dataA, dataB, result) :
+    global CombBest, CombMax, CombResult
+    CombResult = []
+    CombBest = False
+    CombMax = result
+    for i in range(len(dataA)) :
+        dataA[i].append("A")
+    for i in range(len(dataB)) :
+        dataB[i].append("B")
+    data = dataA + dataB
+    Comb(data, result, [])
+    # print("CombResult", CombResult)
+
+def Comb(data, result, ans) :
+    # 如何加上flag
+    global CombBest, CombMax, CombResult
+    # 如果有最佳解了，終止
+    if (CombBest == True) :
+        return 
+    if (result <= 0 or (len(ans) >= len(data) and len(ans) > 0)) :
+        # print("ans", ans)
+        if (checkGroup(ans, "A") and checkGroup(ans, "B")) :
+            if (result == 0 ) :
+                CombResult = ans
+                CombBest = True
+                return
+            if (result < CombMax) :
+                CombResult = ans
+                CombMax = result
+                return
+    for i in range(len(data)) :
+        result = result - float(data[i][2])
+        Comb(data[i+1:], result, ans + [data[i]])
+        result = result + float(data[i][2])
+
+def CombThree(data, result, ans) :
+    # 如何加上flag
+    global CombBest, CombMax, CombResult
+    # 如果有最佳解了，終止
+    if (CombBest == True) :
+        return 
+    if (result <= 0 or (len(ans) >= len(data) and len(ans) > 0)) :
+        if (checkGroup(ans, "A") and checkGroup(ans, "B") and checkGroup(ans, "C")) :
+            if (result == 0 ) :
+                CombResult = ans
+                CombBest = True
+                return
+            if (result < CombMax) :
+                CombResult = ans
+                CombMax = result
+                return
+    for i in range(len(data)) :
+        result = result - float(data[i][2])
+        Comb(data[i+1:], result, ans + [data[i]])
+        result = result + float(data[i][2])
+
+
+def checkGroup(data, groupName) :
+    for i in range(len(data)) :
+        if (data[i][5] == groupName) :
+            return True
+    return False
+
+
+def turnIntoName(missid, CourseId, CourseName) :
+    data = []
+    for i in range(len(missid)) :
+        for j in range(len(CourseId)) :
+            if (CourseId[j] == missid[i]) :
+                data.append(CourseName[j])
+    return data
+
+def moveMore(data) :
+    global needFreeCredit
+    sum = 0
+    # 學分剛好
+    if (CombBest == True) :
+        print("不缺學分")
+    else :
+        for v in range(len(CombResult)) :
+            sum = sum + float(CombResult[v][2])
+        # 學分不足
+        if (sum < result) :
+            print("缺", result - sum, "學分")
+        # 學分超過
+        else :
+            for i in range(len(data)) :
+                needFreeCredit = needFreeCredit - float(data[i][2])
+                for j in range(len(CombResult)) :
+                    if (CombResult[j] == data[i]) :
+                        needFreeCredit = needFreeCredit + float(data[i][2])
+    print(needFreeCredit)
+
+
+def plus(data, Select, oldData) :
+    # print(Select)
+    # print("oldData", oldData)
+    for pos in Select :
+        pos = int(pos)
+        data.append(oldData[pos])
+    return data
+
+def plusGeneral(data, Select, oldData) :
+    print('select', Select)
+    print("oldData", oldData)
+    for pos in Select :
+        selectNum = 0
+        pos = int(pos)
+        for i in range(len(oldData)) :
+            for j in range(len(oldData[i])) :
+                if (selectNum == pos) :
+                    data[i].append(oldData[i][j])
+                selectNum = selectNum + 1
+    return data
+def count(NeedCourse, attendCourse, IdOrName) :
+    missCourse = []
+    for i in range(len(NeedCourse)) :
+        for j in range(len(attendCourse)) :
+            if (IdOrName == 3) :
+                # IdOrName : 課名是 3 、課號是 0
+                # print(attendCourse[], NeedCourse[i])
+                if (attendCourse[j][IdOrName].find(NeedCourse[i]) != -1) :
+                    NeedCourse[i] = "0"
+                else :
+                    j = j + 1
+            elif (IdOrName == 0) :
+                if (attendCourse[j][IdOrName] == NeedCourse[i]) :
+                    NeedCourse[i] = "0"
+                else :
+                    j = j + 1
+    for i in range(len(NeedCourse)) :
+        if (NeedCourse[i] != "0") :
+            missCourse.append(NeedCourse[i])
+    return missCourse
+
+# 系次領域選修學分
+def countSystemCredit(NeedCourse, attendCourse) :
+    # 用課號
+    global needSystemChooseCourse, needProCredit
+    for i in range(len(NeedCourse)) :
+        for j in range(len(attendCourse)) :
+            if (attendCourse[j][0] == NeedCourse[i]) :
+                if (needSystemChooseCourse > 0) :
+                    needSystemChooseCourse = needSystemChooseCourse - 1
+                else :
+                    needProCredit = needProCredit - 3
+                NeedCourse[i] = "0"
+    missProCourse = []
+    if (needSystemChooseCourse > 0) :
+        for i in range(len(NeedCourse)) :
+            if (NeedCourse[i] != "0") :
+                missProCourse.append(NeedCourse[i])
+    return missProCourse
+
+
+# 系選修
+def countProCourse(systemProCoursePlusStudy, systemProCourse_Select) :
+    global needProCredit
+    # 系次領域選修可以當作是系選修的，但一律以算系次領域選修優先
+    # Fix : 一樣會有最佳化的問題
+    systemProCoursePlusStudy = plus(systemProCoursePlusStudy, systemProCourse_Select, systemProCourse)
+    ProCourse = ["951001","951002","130051","130056","130059","130068","130074","130075","130076","130078","130079","C20012","130082","130083","130087","130088","135114","135115","130053","130090","135001","210048","135029","135037","135042","135052","135055","135056","135067","135071","135075","135079","135086","135092","135094","135095","135098","135102","135103","135104","135105","135107","135108","135109","135111","120027","120081","120157","120165","120167","140020","140096","140102","145018","210128","210056","210060","210131","210115","210135","135117","135121","135118","135119","130085","130086","135125","135129","135130","135123","135131","135083","135132","135133","135135","135134","135136","130091","510001","510002","135137","130092","135099"]
+    countCredit(ProCourse, systemProCoursePlusStudy)
+    print("needProCredit : " , needProCredit)
+    # print("needFreeCredit : ", needFreeCredit)
+
+# 系選修學分
+def countCredit(NeedCourse, attendCourse) :
+    # 用課號
+    global needProCredit, needFreeCredit
+    for i in range(len(NeedCourse)) :
+        for j in range(len(attendCourse)) :
+            if (attendCourse[j][0] == NeedCourse[i]) :
+                # print(attendCourse[j][3])
+                if (needProCredit > 0) :
+                    needProCredit = needProCredit - float(attendCourse[j][2])
+                else :
+                    needFreeCredit = needFreeCredit - float(attendCourse[j][2])
+
+# 自由選修
+def countFreeCredit(FreeCreditPlusStudy, FreeCredit_Select) :
+    global needFreeCredit
+    FreeCreditPlusStudy = plus(FreeCreditPlusStudy, FreeCredit_Select, FreeCredit)
+    for i in range(len(FreeCreditPlusStudy)) :
+        needFreeCredit = needFreeCredit - float(FreeCreditPlusStudy[i][2])
+    print("final free credit : ", needFreeCredit)
+
+
+# 系次領域選修
+def countChooseCourse(SystemChooseCoursePlusStudy, SystemChooseCourse_Select, fieldSelect) :
+    data = []
+    SystemChooseCoursePlusStudy = plus(SystemChooseCoursePlusStudy, SystemChooseCourse_Select, SystemChooseCourse)
+    # 技術組課
+    ChooseCourseTech = ["130024", "130031", "130034", "130040", "130077", "130042", "130028", "130022", "135091", "135120", "130073", "130070", "130089"]
+    ChooseCourseTechName = ["資料結構與演算法(下)","軟體工程","系統程式 ","作業系統","網頁程式設計","離散數學","線性代數","計算機組織","資訊安全管理與技術","Linux 系統管理實務(一)","人因與人機介面","微積分及實習(下)","Android App 程式設計"]
+    # 管理組課
+    ChooseCourseManage = ["130058", "130033", "130050", "130061", "130019", "130028", "130073", "130038", "130071", "130070", "135109", "135086", "130089"]
+    ChooseCourseManageName = ["財務管理","作業研究","生產與作業管理","行銷管理","組織行為","線性代數","人因與人機介面","決策支援系統","統計學及實習(下)","微積分及實習(下)","系統思考與系統動態學","創新事業導論","Android App 程式設計"]
+    # 如果是技術組的 (選 8)
+    if (fieldSelect == "1") :
+        missid = countSystemCredit(ChooseCourseTech, SystemChooseCoursePlusStudy)
+        data = turnIntoName(missid, ChooseCourseTech, ChooseCourseTechName)
+    # 是管理組的
+    else :
+        missid = countSystemCredit(ChooseCourseManage, SystemChooseCoursePlusStudy)
+        data = turnIntoName(missid, ChooseCourseManage, ChooseCourseManageName)
+    print("needSystemChooseCourse : " , needSystemChooseCourse)
+    print("SystemChooseCourseAdvice", data)
+
+
+# 校必修
+def countSchoolCourse(SchoolCoursePlusStudy, SchoolCourse_Select) :
+    SchoolCoursePlusStudy = plus(SchoolCoursePlusStudy, SchoolCourse_Select, SchoolCourse)
+    needSchoolCourse =  ["英文(上)","英文(下)","英文二","大一體育(上)","大一體育(下：","服務學習(上)","服務學習(下)","學院國文","學院國文","體育:","體育:"]
+    print("missSchoolCourse", count(needSchoolCourse, SchoolCoursePlusStudy, 3))
+
+# 院必修
+def countCollegeCourse(CollegeCoursePlusStudy, CollegeCourse_Select) :
+    CollegeCoursePlusStudy = plus(CollegeCoursePlusStudy, CollegeCourse_Select, CollegeCourse)
+    # 如果是管院
+    # 管院系所
+    # 資管的課 id 、跟其他院的課 id 不一樣，但是如果用課名，有些需要兩段式檢查
+    needCollegeCourse = ["經濟學", "會計學及實習(一)", "管理學", "統計學", "程式設計(上)"]
+    print("missCollegeCourse", count(needCollegeCourse, CollegeCoursePlusStudy, 3))
+
+# 系必修
+def countSystemCourse(SystemCoursePlusStudy, SystemCourse_Select) :
+    data = []
+    SystemCoursePlusStudy = plus(SystemCoursePlusStudy, SystemCourse_Select, SystemCourse)
+    needSystemCourseId = ["130065", "130014", "130008", "130021", "130030", "130032", "130027", "130039", "130041", "130044"]
+    needSystemCourseName = ["微積分及實習(上)","程式設計(下)","計算機概論","資料結構與演算法(上)","管理資訊系統","資料庫管理系統","系統分析與設計","企業資訊通訊與網路","資訊管理專題與個案(上)","資訊管理專題與個案(下)"]
+    missid = count(needSystemCourseId, SystemCoursePlusStudy, 0)
+    data = turnIntoName(missid, needSystemCourseId, needSystemCourseName)
+    print("missSystemCourse", data)
+    return data
+
+def countGeneralCourse(studyingGeneralGroupPlusStudy, AllGeneral_list_Select) :
+    studyingGeneralGroupPlusStudy = plusGeneral(studyingGeneralGroupPlusStudy, AllGeneral_list_Select, AllGeneral_list)
+    GeneralRule(studyingGeneralGroupPlusStudy)
+
+def countStudying(studyingCourse_Select) :
+    studyingCourseName = GeneralintoName(studyingCourse)
+    studyingGroupPlusStudy = [SchoolCoursePlusStudy, CollegeCoursePlusStudy, SystemCoursePlusStudy, SystemChooseCoursePlusStudy, systemProCoursePlusStudy, FreeCreditPlusStudy]
+    for i in range(len(studyingCourse_Select)) :
+        for g in range(len(studyingCourse)) :
+            for v in range(len(studyingCourse[g])) :
+                if (studyingCourseName[i] == studyingCourse[g][v][3]) :
+                    studyingGroupPlusStudy[g].append(studyingCourse[g][v])
+    print("studyingGroupPlusStudy", studyingGroupPlusStudy)
+    # countSchoolCourse(SchoolCoursePlusStudy, SchoolCourse_Select)
+    # countCollegeCourse(CollegeCoursePlusStudy, CollegeCourse_Select)
+    # countSystemCourse(SystemCoursePlusStudy, SystemCourse_Select)
+    # countChooseCourse(SystemChooseCoursePlusStudy, SystemChooseCourse_Select)
+    # countProCourse(systemProCoursePlusStudy, systemProCourse_Select)
+    # countFreeCredit(FreeCreditPlusStudy, FreeCredit_Select)
+
+def countStudyingGeneral(studyingGeneralGroup_Select) :
+    global studyingGeneralGroupPlusStudy
+    studyingGeneralCourseName = GeneralintoName(studyingGeneralGroup)
+    studyingGeneralGroupPlusStudy = [[], [], [], [], [], [], [], [], []]
+    print("here")
+    for i in range(len(studyingGeneralGroup_Select)) :
+        for g in range(len(studyingGeneralGroup)) :
+            for v in range(len(studyingGeneralGroup[g])) :
+                if (studyingGeneralCourseName[i] == studyingGeneralGroup[g][v][3]) :
+                    studyingGeneralGroupPlusStudy[g].append(studyingGeneralGroup[g][v])
+    # countGeneralCourse(studyingGeneralGroupPlusStudy, AllGeneral_list_Select)
+
 def init():
     global FreeCredit, advance, attendCourse, system, passNum, Epass, user, password, driver
     global AllGeneral, AllGeneral_list, SchoolCourse, CollegeCourse, SystemCourse, SystemChooseCourse, systemProCourse, FreeCredit, studyingCourse
@@ -441,6 +831,18 @@ def init():
     FreeCredit = [] # 自由選修
     studyingCourse = [] # 修習中
 
+def init2():
+    global missGeneral, needSystemChooseCourse, needProCredit, needFreeCredit, result, resultSpecial, CombResult, CombBest, CombMax
+    missGeneral = []
+    needSystemChooseCourse = 8
+    needProCredit = 12
+    needFreeCredit = 20
+    result = 5
+    resultSpecial = 4
+    CombResult = []
+    CombBest = False
+    CombMax = result
+
 @app.route('/')  
 def home():
     return render_template("home.html");  
@@ -456,16 +858,17 @@ def validate():
     # pwd = request.form['pwd']
     # AllGeneral_list = ['戲劇欣賞', '與哲學家對話', '性別、教育、人文與社會', '政治哲學概論', '不動產投資與交易實務', '影像處理與設計-Photoshop', '圖解生命原理', '東南亞觀光與發展', '綠色能源']
     global user, password
+    global AllGeneral_list, SchoolCourse, CollegeCourse, SystemCourse, SystemChooseCourse, systemProCourse, FreeCredit, studyingCourse, studyingGeneralGroup
+
     init()
     user = request.form['id']
     password = request.form['pwd']
 
     isSuccess = Login()
-
-    
     # 如果帳號密碼正確，切換新頁面
     if isSuccess:
         group()
+
         # print("AllGeneral_list", AllGeneral_list)
         return render_template("check.html", studyingCourse = GeneralintoName(studyingCourse),
                                              studyingGeneralGroup = GeneralintoName(studyingGeneralGroup),
@@ -483,6 +886,22 @@ def validate():
 @app.route('/check', methods = ["POST"])
 def checkSelect():
     global AllGeneral_list, SchoolCourse, CollegeCourse, SystemCourse, SystemChooseCourse, systemProCourse, FreeCredit, studyingCourse, studyingGeneralGroup
+    global missGeneral, needSystemChooseCourse, needProCredit, needFreeCredit, result, resultSpecial, CombResult, CombBest, CombMax
+
+    init2()
+    print("7777777777")
+    print("missGeneral", missGeneral)
+    print("needSystemChooseCourse", needSystemChooseCourse)
+    print("needProCredit", needProCredit)
+    print("needFreeCredit", needFreeCredit)
+    print("result", result)
+    print("resultSpecial", resultSpecial)
+    print("CombResult", CombResult)
+    print("CombBest", CombBest)
+    print("CombMax", CombMax)
+    print("7777777777")
+
+
 
     AllGeneral_list_Select = request.form.getlist('AllGeneral_list_Select')
     SchoolCourse_Select = request.form.getlist('SchoolCourse_Select')
@@ -495,33 +914,24 @@ def checkSelect():
     studyingCourse_Select = request.form.getlist('studyingCourse_Select')
     fieldSelect = request.form['fieldSelect']
 
-    print(AllGeneral_list_Select)
-    print(SchoolCourse_Select)
-    print(CollegeCourse_Select)
-    print(SystemCourse_Select)
-    print(SystemChooseCourse_Select)
-    print(systemProCourse_Select)
-    print(FreeCredit_Select)
-    print(studyingGeneralGroup_Select)
-    print(studyingCourse_Select)
-    print(fieldSelect)
 
-    print("------")
-    print("AllGeneral_list", AllGeneral_list)
-    print("SchoolCourse", SchoolCourse)
-    print("CollegeCourse", CollegeCourse)
-    print("SystemCourse", SystemCourse)
-    print("SystemChooseCourse", SystemChooseCourse)
-    print("systemProCourse", systemProCourse)
-    print("FreeCredit", FreeCredit)
-    print("studyingCourse", studyingCourse)
-    print("studyingGeneralGroup", studyingGeneralGroup)
-    print("------")
+    countStudying(studyingCourse_Select)
+    countSchoolCourse(SchoolCoursePlusStudy, SchoolCourse_Select)
+    countCollegeCourse(CollegeCoursePlusStudy, CollegeCourse_Select)
+    countSystemCourse(SystemCoursePlusStudy, SystemCourse_Select)
+    countChooseCourse(SystemChooseCoursePlusStudy, SystemChooseCourse_Select, fieldSelect)
+    countProCourse(systemProCoursePlusStudy, systemProCourse_Select)
+    countFreeCredit(FreeCreditPlusStudy, FreeCredit_Select)
+    countStudyingGeneral(studyingGeneralGroup_Select)
+    countGeneralCourse(studyingGeneralGroupPlusStudy, AllGeneral_list_Select) #通識
+
 
     percentage = [50, 41, 100, 12]
+    return render_template("result.html", percentage = percentage, 
+                                          needFreeCredit = needFreeCredit,
+                                          missGspeech = (6-passNum),
+                                          Epass = Epass)
 
-
-    return render_template("result.html", percentage = percentage)
 
 if __name__ == '__main__':
     app.run(debug = True)
