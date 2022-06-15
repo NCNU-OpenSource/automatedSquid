@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/background.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+  {% include './models/bs_css.html' %}
+</head>
+
+<style>
+  table {
+    width: 100%;
+    line-height: 1em;
+    font-size: 2em;
+    color: rgb(19, 58, 103);
+  }
+
+  td {
+    /* border: 0.1em solid rgb(19, 58, 103); */
+    padding: 1em;
+  }
+
+  .category {
+    width: 20%;
+    text-align: right;
+    font-weight: 500;
+  }
+
+  .bar {
+    width: 60%;
+    padding: 0em, 2em, 0em, 2em;
+  }
+
+  .number {
+    font-size: 0.9em;
+    width: 20%;
+    text-align: left;
+  }
+
+  .progress-bar {
+    background-color:rgb(19, 58, 103);
+    /* box-shadow:0 0.5em 0.5em 0 rgba(255, 95, 55, 0.9); */
+    border: 0.1em solid rgb(12, 47, 87);
+    height: 20px;
+  }
+
+  .progress {
+    border: 0.1em solid rgb(12, 47, 87);
+    height: 2em;
+
+  }
+
+
+</style>
+
+<body>
+  {% include './models/navbar.html' %}
+  <div class="container m-auto" style="height: 90vh; padding: 5%;">
+      <div class="row">
+        <div class="form-inline">
+          <h3 class="step">Step 4</h3>
+          <h3 class="stepText">查看分析結果</h3>
+        </div>
+      </div>
+      <div class="row" style="padding: 5%;"> 
+        <table>
+          <tr id="row0"><td class="category" id="category0">通識課程</td><td class="bar" id="bar0"></td><td class="number" id="number0"></td></tr>
+          <tr id="row1"><td class="category" id="category1">必修課程</td><td  class="bar" id="bar1"></td><td class="number"  id="number1"></td></tr>
+          <tr id="row2"><td class="category" id="category2">選修課程</td><td  class="bar" id="bar2"></td><td class="number"  id="number2"></td></tr>
+          <tr id="row3"><td class="category" id="category3">自由學分</td><td  class="bar" id="bar3"></td><td class="number"  id="number3"></td></tr>
+        </table>
+      </div>
+    </form>
+  </div>
+  {% include './models/bs_js.html' %}
+
+  <script>
+    function showBar() {
+      let percentage = JSON.parse('{{percentage | tojson}}');
+      // 通識領域課程, 必修課程, 選修課程, 自由學分
+      console.log(percentage);
+      for (let i=0; i<percentage.length; i++) {
+        if(percentage[i] < 0) {
+          document.getElementById("row"+i.toString()).style.visibility = "hidden";
+        }
+        else {
+          // console.log(i);
+          // 進度條
+          let html = "";
+          html = `<div class="progress">
+                    <div class="progress-bar" role="progressbar" style="width: ${percentage[i]}%" 
+                          aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>`;
+          document.getElementById("bar"+i.toString()).innerHTML = html;
+          // 數字
+          html = "";
+          html = `${percentage[i]} %`;
+          document.getElementById("number"+i.toString()).innerHTML = html;
+        }
+      }
+    }
+
+    showBar();
+
+  </script>
+</body>
+
+</html>
