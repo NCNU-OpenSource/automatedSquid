@@ -154,8 +154,8 @@
   <script>
     function showBar() {
       let percentage = JSON.parse('{{percentage | tojson}}');
+      console.log("percentage: ", percentage);
       // 通識領域課程, 必修課程, 選修課程, 自由學分
-      console.log(percentage);
       for (let i=0; i<percentage.length; i++) {
         if(percentage[i] < 0) {
           // document.getElementById("row"+i.toString()).style.visibility = "hidden";
@@ -178,30 +178,146 @@
       }
     }
 
-    // function printGeneral() {
-    //   if() {
-    //     let html = "";
-    //     document.getElementById('').innerHTML = html;
-    //   } else{
-    //     document.getElementById('').style.display = "none";
-    //   }
-    // }
-    // function printNecessary() {
-    //   if() {
-    //     let html = "";
-    //     document.getElementById('').innerHTML = html;
-    //   } else{
-    //     document.getElementById('').style.display = "none";
-    //   }
-    // }
-    // function printChoose() {
-    //   if() {
-    //     let html = "";
-    //     document.getElementById('').innerHTML = html;
-    //   } else{
-    //     document.getElementById('').style.display = "none";
-    //   }
-    // }
+    function checkWord(toCheck, data) {
+      for (let i=0; i<data.length;i++) {
+        if (toCheck == data[i]) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function printGeneral() {
+      let missGeneral = JSON.parse('{{ missGeneral | tojson}}');
+      let missSpecialGeneral = JSON.parse('{{ missSpecialGeneral | tojson}}');
+      let missGeneralCredit = JSON.parse('{{ missGeneralCredit | tojson}}');
+      console.log("missGeneral: ", missGeneral);
+      console.log("missSpecialGeneral: ", missSpecialGeneral);
+      console.log("missGeneralCredit: ", missGeneralCredit);
+      
+      if((missGeneral.length + missSpecialGeneral.length) != 0) {
+        let html = "<ul>";
+        //特色 人文 自然 社會
+        //人文
+        if(missGeneralCredit[1] != 0) {
+          html += `<li>「人文領域」缺 ${missGeneralCredit[1]} 學分<ul>`;
+          if(checkWord("歷史哲學與文化", missGeneral) == true){
+            html += "<li>歷史哲學與文化</li>";
+          }
+          if(checkWord("文學與藝術", missGeneral) == true){
+            html += "<li>文學與藝術</li>";
+          }
+          html += "</ul></li>";
+        }
+        //自然
+        if(missGeneralCredit[2] != 0) {
+          html += `<li>「自然領域」缺 ${missGeneralCredit[2]} 學分<ul>`;
+          if(checkWord("生命與科學", missGeneral) == true){
+            html += "<li>生命與科學</li>";
+          }
+          if(checkWord("工程與科技", missGeneral) == true){
+            html += "<li>工程與科技</li>";
+          }
+          html += "</ul></li>";
+        }
+        //社會
+        if(missGeneralCredit[3] != 0) {
+          html += `<li>「社會領域」缺 ${missGeneralCredit[3]} 學分<ul>`;
+          if(checkWord("社經與管理", missGeneral) == true){
+            html += "<li>社經與管理</li>";
+          }
+          if(checkWord("法政與教育", missGeneral) == true){
+            html += "<li>法政與教育</li>";
+          }
+          html += "</ul></li>";
+        }
+        //特色通識
+        if(missGeneralCredit[0] != 0) {
+          // html += `<li>「特色通識領域」缺 ${missGeneralCredit[0]} 學分<ul>`;
+          if(missGeneralCredit[0] == 2) {
+            html += `<li>「特色通識領域」缺 ${missGeneralCredit[0]} 學分 (3選2)<ul>`;
+          } else {
+            html += `<li>「特色通識領域」缺 ${missGeneralCredit[0]} 學分 (2選1)<ul>`;
+          }
+
+          if(checkWord("東南亞", missSpecialGeneral) == true){
+            html += "<li>東南亞</li>";
+          }
+          if(checkWord("綠概念", missSpecialGeneral) == true){
+            html += "<li>綠概念</li>";
+          }
+          if(checkWord("在地實踐", missSpecialGeneral) == true){
+            html += "<li>在地實踐</li>";
+          }
+          html += "</ul></li>";
+        }
+        html += "</ul>";
+        document.getElementById('generalContent').innerHTML = html;
+      } else{
+        document.getElementById('generalDiv').style.display = "none";
+      }
+    }
+    function printNecessary() {
+      let missSchoolCourse = JSON.parse('{{ missSchoolCourse | tojson}}');
+      let missCollegeCourse = JSON.parse('{{ missCollegeCourse | tojson}}');
+      let missSystemCourse = JSON.parse('{{ missSystemCourse | tojson}}');
+      console.log("missSchoolCourse: ", missSchoolCourse);
+      console.log("missCollegeCourse: ", missCollegeCourse);
+      console.log("missSystemCourse: ", missSystemCourse);
+      if((missSchoolCourse.length+missCollegeCourse.length+missSystemCourse.length) != 0) {
+        let html = "<ul>";
+        if(missSchoolCourse.length!=0) {
+          html += '<li>校必修課程<ul>';
+          for (let i=0; i<missSchoolCourse.length; i++) {
+            html += `<li>${missSchoolCourse[i]}</li>`;
+          }
+          html += '</ul></li></li>';
+        }
+        if(missCollegeCourse.length!=0) {
+          html += '<li>院必修課程<ul>';
+          for (let i=0; i<missCollegeCourse.length; i++) {
+            html += `<li>${missCollegeCourse[i]}</li>`;
+          }
+          html += '</ul></li></li>';
+        }
+        if(missSystemCourse.length!=0) {
+          html += '<li>系必修課程<ul>';
+          for (let i=0; i<missSystemCourse.length; i++) {
+            html += `<li>${missSystemCourse[i]}</li>`;
+          }
+          html += '</ul></li></li>';
+        }
+        document.getElementById('necessaryContent').innerHTML = html;
+      } else{
+        document.getElementById('necessaryDiv').style.display = "none";
+      }
+    }
+    function printChoose() {
+      let needSystemChooseCourse = '{{needSystemChooseCourse}}'
+      let missChooseCourse = JSON.parse('{{ missChooseCourse | tojson}}');
+      let needProCredit = '{{needProCredit}}'
+      console.log("needSystemChooseCourse: ", needSystemChooseCourse);
+      console.log("missChooseCourse: ", missChooseCourse);
+      console.log("needProCredit: ", needProCredit);
+
+      //次領域還沒修完 or 專業選修還沒修完
+      if(needSystemChooseCourse>0 || needProCredit > 0) {
+        let html = "<ul>";
+        if(needSystemChooseCourse > 0) {
+          html += `<li>「次領域選修」缺 ${needSystemChooseCourse} 門<ul>`;
+          for (let i=0; i<missChooseCourse.length; i++) {
+            html += `<li>${missChooseCourse[i]}</li>`;
+          }
+          html += '</ul></li>';
+        }
+        if(needProCredit > 0) {
+          html += `<li>「系專業選修」缺 ${needProCredit} 學分</li></ul>`;
+        }
+        document.getElementById('chooseContent').innerHTML = html;
+      } else{
+        document.getElementById('chooseDiv').style.display = "none";
+      }
+    }
     function printFree() {
       let need = '{{needFreeCredit}}';
       console.log("Free: ", need);
@@ -237,11 +353,11 @@
 
     function showList() {
       //通識
-      //printGeneral()
+      printGeneral()
       //必修
-      //printNecessary()
+      printNecessary()
       //選修
-      //printChoose()
+      printChoose()
       //自由選修
       printFree()
       //通識講座
@@ -250,11 +366,15 @@
       printEpass()
     }
     showBar();
-    showList()
-    // console.log('{{Gspeech}}');
-    // needFreeCredit
-    // missGspeech
-    // EPass
+    showList();
+
+    // let missGeneral = JSON.parse('{{ missGeneral | tojson}}');
+    // let missSpecialGeneral = JSON.parse('{{ missSpecialGeneral | tojson}}');
+    // let missGeneralCredit = JSON.parse('{{ missGeneralCredit | tojson}}');
+    // console.log("missGeneral: ", missGeneral);
+    // console.log("missSpecialGeneral: ", missSpecialGeneral);
+    // console.log("missGeneralCredit: ", missGeneralCredit);
+    
 
   </script>
 </body>
