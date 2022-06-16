@@ -207,17 +207,19 @@ def GSpeech() :
 def EasyCheck() :
     # 體育課同一學期修兩堂
     # print("att", attendCourse)
-    global FreeCredit
+    global needFreeCredit
     Sameyear = 0
     i = 0
     while ( i < len(attendCourse)) :
         if (attendCourse[i][3].find("體育:") != -1) :
+            print("attendCourse[i][3]", attendCourse[i][1])
             if (Sameyear == attendCourse[i][1]) :
-                FreeCredit = FreeCredit - float(attendCourse[i][2])
+                print("isSame")
+                print(attendCourse[i][2])
+                needFreeCredit = needFreeCredit - float(attendCourse[i][2])
                 attendCourse.pop(i)
                 i = i - 1
-            else :
-                Sameyear = attendCourse[i][1]
+            Sameyear = attendCourse[i][1]
         i = i + 1
 
 # 登入教務系統, 抓資料
@@ -369,10 +371,12 @@ def check(NeedCourse, IdOrName) :
                 if (attendCourse[j] != "0" and attendCourse[j][IdOrName].find(NeedCourse[i]) != -1) :
                     data.append(attendCourse[j])
                     attendCourse[j] = "0"
+                    break
             elif (IdOrName == 0) :
                 if (attendCourse[j] != "0" and attendCourse[j][IdOrName] == NeedCourse[i]) :
                     data.append(attendCourse[j])
                     attendCourse[j] = "0"
+                    break
     return data
 
 # 系次領域選修
@@ -459,6 +463,16 @@ def checkStudying() :
             j = j + 1
     # print("studyingCourse", studyingCourse)
     # print("studyingGeneralGroup", studyingGeneralGroup)
+def minigroup() :
+    # 讀取今年年分
+    ThisYear = datetime.datetime.now().date().year
+    # 1 是技術 、 0 是管理
+    # SystemChoose = int(input())
+    # studying() # Fix 目前考慮都分組之後，再把資料挑出來，組別資訊留著
+    readAllGeneral(user, ThisYear)
+    checkSchoolCourse()
+    checkGeneralCourse()
+    # checkFreeCredit()
 
 def group() :
     # 讀取今年年分
@@ -475,7 +489,6 @@ def group() :
     checkGeneralCourse()
     checkFreeCredit()
     checkStudying()
-    # AllIntoName()
 
 def GeneralRule(data) :
     # global CombBest, CombResult
@@ -712,8 +725,8 @@ def count(NeedCourse, attendCourse, IdOrName) :
     global missCourseCredit
     missCourse = []
     missCourseCredit = 0
-    for i in range(len(NeedCourse)) :
-        for j in range(len(attendCourse)) :
+    for i in range(len(attendCourse)) :
+        for j in range(len(NeedCourse)) :
             if (IdOrName == 3) :
                 # IdOrName : 課名是 3 、課號是 0
                 # print(attendCourse[], NeedCourse[i])
@@ -721,15 +734,15 @@ def count(NeedCourse, attendCourse, IdOrName) :
                     #print(missCourseCredit, attendCourse[j])
                     NeedCourse[i] = "0"
                     missCourseCredit = missCourseCredit - float(attendCourse[j][2])
-                else :
-                    j = j + 1
+                    break
             elif (IdOrName == 0) :
                 if (attendCourse[j][IdOrName] == NeedCourse[i]) :
                     #print(attendCourse[j])
                     NeedCourse[i] = "0"
                     missCourseCredit = missCourseCredit - float(attendCourse[j][2])
-                else :
-                    j = j + 1
+                    # attendCourse[j] = []
+                    break
+    print("NeedCourse_INside", NeedCourse)
     for i in range(len(NeedCourse)) :
         if (NeedCourse[i] != "0") :
             missCourse.append(NeedCourse[i])
@@ -1013,12 +1026,17 @@ def validate():
     isSuccess = Login()
     # 如果帳號密碼正確，切換新頁面
     if isSuccess:
-        group()
+        print("system", system)
+        if ( system == "資訊管理學系"):
+            group()
+        else :
+            # group()
+            print("minigroupFunc")
 
         # print("AllGeneral_list", AllGeneral_list)
         return render_template("check.html", studyingCourse = GeneralintoName(studyingCourse),
                                              studyingGeneralGroup = GeneralintoName(studyingGeneralGroup),
-                                             AllGeneral_list=GeneralintoName(AllGeneral_list), 
+                                             AllGeneral_list = GeneralintoName(AllGeneral_list), 
                                              SchoolCourse = intoName(SchoolCourse), 
                                              CollegeCourse = intoName(CollegeCourse),
                                              SystemCourse = intoName(SystemCourse),
