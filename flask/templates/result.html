@@ -83,6 +83,56 @@
     padding: 1em 0em 1em 0em;
   }
 
+  .speech-bubble {
+    position: relative;
+    background: rgba(255, 255, 255, 0.581);
+    border-radius: .4em;
+  }
+
+  .speech-bubble:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    width: 0;
+    height: 0;
+    border: 3em solid transparent;
+    border-right-color: #ffffff9c;
+    border-left: 0;
+    border-bottom: 0;
+    margin-top: 0em;
+    margin-left: -3em;
+
+    
+  }
+
+  img{
+    -webkit-filter: drop-shadow(5px 5px 5px rgba(122, 122, 122, 0.792));
+    filter: drop-shadow(5px 5px 5px rgb(124, 124, 124));
+  }
+  
+
+  #chat {
+    padding: 3em; 
+    text-align: left;
+    font-size: 1.4em;
+  }
+
+  .floating { 
+      animation-name: floating;
+      animation-duration: 3s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      margin-left: 30px;
+      margin-top: 5px;
+  }
+  
+  @keyframes floating {
+      0% { transform: translate(0,  0px); }
+      50%  { transform: translate(0, 15px); }
+      100%   { transform: translate(0, -0px); }   
+  }
+
 
 </style>
 
@@ -103,6 +153,18 @@
         <tr id="row3"><td class="category" id="category3">自由學分</td><td  class="bar" id="bar3"></td><td class="number"  id="number3"></td></tr>
       </table>
     </div>
+    
+    <div class="row" id="chatDiv" style="padding: 0% 20% 0% 20%;">
+      <div class="col-3">
+        <img class="floating" src="/static/picture/logo.png" width="100%">
+      </div>
+      <div class="col-1"></div>
+      <div class="col-8 speech-bubble" id="chat">
+        <p class="text-auto" id="chat">78798</p>
+      </div>
+    </div>
+
+
     <div style="padding: 5% 10% 5% 10%;" >
       <div class="" id="recommandTitle">
         建議修課清單
@@ -152,6 +214,19 @@
   {% include './models/bs_js.html' %}
 
   <script>
+    function genChat() {
+      show = parseInt(Math.random() * 2);
+      if(show == 1) {
+        let lines = ["你是不是不想畢業", "烏拉拉烏拉阿拉阿", 
+        "蘇滑口口", "就跟你說由於不是花枝 :)", "花枝魷魚面", "當年我爺爺的爺爺的爺爺打贏了一隻抹香鯨", "笑死"]
+        num = parseInt(Math.random() * lines.length);
+        console.log(num);
+        document.getElementById('chat').innerHTML = lines[num];
+      }else {
+        document.getElementById('chatDiv').style.display = "none";
+      } 
+    }
+    
     function showBar() {
       let percentage = JSON.parse('{{percentage | tojson}}');
       console.log("percentage: ", percentage);
@@ -373,6 +448,7 @@
       //英文畢業門檻 
       printEpass()
     }
+    genChat()
     showBar();
     showList();
 
