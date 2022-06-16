@@ -1,11 +1,5 @@
 version: "3"
 services:
-  webdriver:
-    image: selenium/standalone-firefox
-    ports:
-      - "4444:4444"
-
-
   squid_server:
     build: ./
     ports:

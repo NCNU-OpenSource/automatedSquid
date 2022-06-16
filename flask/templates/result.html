@@ -199,7 +199,9 @@
         let html = "<ul>";
         //特色 人文 自然 社會
         //人文
-        if(missGeneralCredit[1] != 0) {
+        if(missGeneralCredit[1] != 0 ||
+          checkWord("歷史哲學與文化", missGeneral) == true ||
+          checkWord("文學與藝術", missGeneral) == true) {
           html += `<li>「人文領域」缺 ${missGeneralCredit[1]} 學分<ul>`;
           if(checkWord("歷史哲學與文化", missGeneral) == true){
             html += "<li>歷史哲學與文化</li>";
@@ -210,7 +212,9 @@
           html += "</ul></li>";
         }
         //自然
-        if(missGeneralCredit[2] != 0) {
+        if(missGeneralCredit[2] != 0 ||
+        checkWord("生命與科學", missGeneral) == true ||
+        checkWord("工程與科技", missGeneral) == true) {
           html += `<li>「自然領域」缺 ${missGeneralCredit[2]} 學分<ul>`;
           if(checkWord("生命與科學", missGeneral) == true){
             html += "<li>生命與科學</li>";
@@ -221,7 +225,9 @@
           html += "</ul></li>";
         }
         //社會
-        if(missGeneralCredit[3] != 0) {
+        if(missGeneralCredit[3] != 0 || 
+          checkWord("社經與管理", missGeneral) == true ||
+          checkWord("法政與教育", missGeneral) == true) {
           html += `<li>「社會領域」缺 ${missGeneralCredit[3]} 學分<ul>`;
           if(checkWord("社經與管理", missGeneral) == true){
             html += "<li>社經與管理</li>";
@@ -232,8 +238,10 @@
           html += "</ul></li>";
         }
         //特色通識
-        if(missGeneralCredit[0] != 0) {
-          // html += `<li>「特色通識領域」缺 ${missGeneralCredit[0]} 學分<ul>`;
+        if(missGeneralCredit[0] != 0 ||
+          checkWord("東南亞", missSpecialGeneral) == true ||
+          checkWord("綠概念", missSpecialGeneral) == true ||
+          checkWord("在地實踐", missSpecialGeneral) == true) {
           if(missGeneralCredit[0] == 2) {
             html += `<li>「特色通識領域」缺 ${missGeneralCredit[0]} 學分 (3選2)<ul>`;
           } else {

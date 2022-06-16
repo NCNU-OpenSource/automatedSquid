@@ -740,48 +740,50 @@ def count(NeedCourse, attendCourse, IdOrName) :
 def countSystemCredit(NeedCourse, attendCourse) :
     # 用課號
     global needSystemChooseCourse, needProCredit
+    ProNum = 0
     for i in range(len(NeedCourse)) :
         for j in range(len(attendCourse)) :
             if (attendCourse[j][0] == NeedCourse[i]) :
+                ProNum = ProNum + 1
+                NeedCourse[i] = "0"
                 if (needSystemChooseCourse > 0) :
                     needSystemChooseCourse = needSystemChooseCourse - 1
                 else :
                     needProCredit = needProCredit - 3
-                NeedCourse[i] = "0"
-            needProCredit = needProCredit - 3
     missProCourse = []
     if (needSystemChooseCourse > 0) :
         for i in range(len(NeedCourse)) :
             if (NeedCourse[i] != "0") :
                 missProCourse.append(NeedCourse[i])
+    if (len(attendCourse) > ProNum) :
+        needProCredit = (needProCredit - 3) * (len(attendCourse) - ProNum)
     return missProCourse
-
 
 # 系選修
 def countProCourse(systemProCoursePlusStudy, systemProCourse_Select) :
     global needProCredit
     # 系次領域選修可以當作是系選修的，但一律以算系次領域選修優先
-    # Fix : 一樣會有最佳化的問題
     systemProCoursePlusStudy = plus(systemProCoursePlusStudy, systemProCourse_Select, systemProCourse)
-    ProCourse = ["951001","951002","130051","130056","130059","130068","130074","130075","130076","130078","130079","C20012","130082","130083","130087","130088","135114","135115","130053","130090","135001","210048","135029","135037","135042","135052","135055","135056","135067","135071","135075","135079","135086","135092","135094","135095","135098","135102","135103","135104","135105","135107","135108","135109","135111","120027","120081","120157","120165","120167","140020","140096","140102","145018","210128","210056","210060","210131","210115","210135","135117","135121","135118","135119","130085","130086","135125","135129","135130","135123","135131","135083","135132","135133","135135","135134","135136","130091","510001","510002","135137","130092","135099"]
-    countCredit(ProCourse, systemProCoursePlusStudy)
+    countCredit(systemProCoursePlusStudy)
     print("needProCredit : " , needProCredit)
-    # print("needFreeCredit : ", needFreeCredit)
+    print("needFreeCredit : ", needFreeCredit)
 
 # 系選修學分
-def countCredit(NeedCourse, attendCourse) :
+def countCredit(attendCourse) :
     # 用課號
     global needProCredit, needFreeCredit
-    print("NeedCourse", NeedCourse)
     print("attendCourse", attendCourse)
-    for i in range(len(NeedCourse)) :
-        for j in range(len(attendCourse)) :
-            if (attendCourse[j][0] == NeedCourse[i]) :
-                print("into_Name", attendCourse[j][3])
-                if (needProCredit > 0) :
-                    needProCredit = needProCredit - float(attendCourse[j][2])
-                else :
-                    needFreeCredit = needFreeCredit - float(attendCourse[j][2])
+    newlist = sorted(attendCourse, key=lambda d: d[2])
+    print("newlist", newlist)
+    while (needProCredit > 0 and len(newlist) > 0) :
+        print(newlist)
+        num = float(newlist.pop()[2])
+        if (needProCredit >= num) :
+            needProCredit = needProCredit - num
+        else :
+            needFreeCredit = needFreeCredit - num
+    while (len(newlist) > 0) :
+        needFreeCredit = needFreeCredit - float(newlist.pop()[2])
 
 # 自由選修
 def countFreeCredit(FreeCreditPlusStudy, FreeCredit_Select) :
@@ -790,7 +792,6 @@ def countFreeCredit(FreeCreditPlusStudy, FreeCredit_Select) :
     for i in range(len(FreeCreditPlusStudy)) :
         needFreeCredit = needFreeCredit - float(FreeCreditPlusStudy[i][2])
     print("final free credit : ", needFreeCredit)
-
 
 # 系次領域選修
 def countChooseCourse(SystemChooseCoursePlusStudy, SystemChooseCourse_Select, fieldSelect) :
