@@ -53,6 +53,7 @@
     - `sudo docker compose up`
 - 結果畫面
       ![image](https://github.com/NCNU-OpenSource/automatedSquid/blob/main/MainPage.jpg)
+- [實作影片](https://www.youtube.com/watch?v=CYOCT4PtsxY)
 
 ## Job Assignment 工作分配
 - 前端 : 采禎
@@ -80,4 +81,4 @@
 - 題目發想
   - [漢偉](https://github.com/UncleHanWei)、蔣媽、[柏偉](https://github.com/PengLaiRenOu) 
 - 測試小天使
-  - 琪樺、亮亮、蔣媽
+  - [琪樺](https://github.com/ChiHua0918)、亮亮、蔣媽
