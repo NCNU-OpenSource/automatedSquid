@@ -51,6 +51,8 @@
     - `cd automatedSquid/flask`
     - `sudo docker compose build`
     - `sudo docker compose up`
+- 結果畫面
+      ![image](https://github.com/NCNU-OpenSource/automatedSquid/blob/main/MainPage.jpg)
 
 ## Job Assignment 工作分配
 - 前端 : 采禎
@@ -74,14 +76,8 @@
 4. 將網站部屬到虛擬機時（ubuntu server 版）安裝 WebDriver 時，虛擬機會從文字介面變成奇怪畫面
   :point_right: 架在 docker 中 
 
-## 未來展望
-- 目前不能讓複數人同時使用此系統，希望未來可以供應多人同時上線使用
-- 增加判斷其他系的畢業標準
-- 可以列出使用者下學期的建議課表
-- 如果學生不想提供校務系統帳密，可以用訪客模式，自行上傳從校務系統的 csv 檔，以此來查看修課狀況
-
 ## 感謝名單
 - 題目發想
-  - 漢偉、蔣媽、柏偉 
+  - [漢偉](https://github.com/UncleHanWei)、蔣媽、[柏偉](https://github.com/PengLaiRenOu) 
 - 測試小天使
   - 琪樺、亮亮、蔣媽
